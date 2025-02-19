@@ -37,8 +37,8 @@ urlpatterns = [
         name='delete_post'
     ),
     path(
-        'profile/<slug:username>/',
-        views.ProfileDetaillView.as_view(),
+        'profile/<str:username>/',
+        views.ProfileListlView.as_view(),
         name='profile'
     ),
     path(

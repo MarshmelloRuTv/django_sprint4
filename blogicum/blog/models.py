@@ -1,5 +1,6 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
+from django.urls import reverse
 
 from core.models import PublishedModel
 
@@ -18,8 +19,10 @@ class Category(PublishedModel):
     slug = models.SlugField(
         unique=True,
         verbose_name='Идентификатор',
-        help_text='Идентификатор страницы для URL; '
-        'разрешены символы латиницы, цифры, дефис и подчёркивание.'
+        help_text=(
+            'Идентификатор страницы для URL; '
+            'разрешены символы латиницы, цифры, дефис и подчёркивание.'
+        )
     )
 
     class Meta:
@@ -52,15 +55,17 @@ class Post(PublishedModel):
     text = models.TextField(verbose_name='Текст')
     pub_date = models.DateTimeField(
         verbose_name='Дата и время публикации',
-        help_text='Если установить дату и время в будущем — '
-        'можно делать отложенные публикации.'
+        help_text=(
+            'Если установить дату и время в будущем — '
+            'можно делать отложенные публикации.'
+        )
     )
     image = models.ImageField('Фото', upload_to='post_images', blank=True)
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         verbose_name='Автор публикации',
-        related_name='author_posts'
+        related_name='posts'
     )
     location = models.ForeignKey(
         Location,
@@ -68,15 +73,18 @@ class Post(PublishedModel):
         null=True,
         blank=True,
         verbose_name='Местоположение',
-        related_name='location_posts'
+        related_name='posts'
     )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
         null=True,
         verbose_name='Категория',
-        related_name='category_posts'
+        related_name='posts'
     )
+
+    def get_absolute_url(self):
+        return reverse('blog:post_detail', kwargs={'pk': self.pk})
 
     class Meta:
         verbose_name = 'публикация'
@@ -87,15 +95,19 @@ class Post(PublishedModel):
         return self.title
 
 
-class Congratulation(models.Model):
+class Comment(models.Model):
     text = models.TextField('Комментаий')
     post = models.ForeignKey(
         Post,
         on_delete=models.CASCADE,
-        related_name='congratulations',
+        related_name='comments',
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
 
     class Meta:
         verbose_name = 'комментарий'
@@ -103,4 +115,4 @@ class Congratulation(models.Model):
         ordering = ('created_at',)
 
     def __str__(self):
-        return self.text
+        return f'{self.text} - от {self.author.username} на пост {self.post}'

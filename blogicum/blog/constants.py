@@ -1,0 +1,1 @@
+MAX_COUNT_POST = 10
